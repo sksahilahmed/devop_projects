@@ -14,25 +14,25 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker build -t ${IMAGE}:${BUILD_ID} ."
-                    sh "docker tag ${IMAGE}:${BUILD_ID} ${IMAGE}:latest"
-                }
+                bat "docker build -t %IMAGE%:%BUILD_ID% ."
+                bat "docker tag %IMAGE%:%BUILD_ID% %IMAGE%:latest"
             }
         }
 
         stage('Login to DockerHub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                    bat """
+                    echo %PASS% | docker login -u %USER% --password-stdin
+                    """
                 }
             }
         }
 
         stage('Push to DockerHub') {
             steps {
-                sh "docker push ${IMAGE}:${BUILD_ID}"
-                sh "docker push ${IMAGE}:latest"
+                bat "docker push %IMAGE%:%BUILD_ID%"
+                bat "docker push %IMAGE%:latest"
             }
         }
 
