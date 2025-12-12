@@ -3,10 +3,10 @@ pipeline {
 
     environment {
         IMAGE = "sksahilahmed/devops-app"
-        
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -24,26 +24,23 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     bat """
-                    echo %PASS% | docker login -u %USER% --password-stdin
+                    docker logout
+                    docker login -u %USER% -p %PASS%
                     """
                 }
             }
         }
 
-        stage('Login to DockerHub') {
+        stage('Push to DockerHub') {
             steps {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    bat """
-                    docker logout
-                     docker login -u %USER% -p %PASS%
-                     """
-                     }
-                 }
+                bat "docker push %IMAGE%:%BUILD_ID%"
+                bat "docker push %IMAGE%:latest"
+            }
         }
 
         stage('Deploy') {
             steps {
-                echo "Deployment will come next..."
+                echo "Deployment stage will be implemented later."
             }
         }
     }
