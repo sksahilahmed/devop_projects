@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE = "sksahilahmed1604/devops-app"
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -8,21 +12,33 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                echo "Building the application..."
+                script {
+                    sh "docker build -t ${IMAGE}:${BUILD_ID} ."
+                    sh "docker tag ${IMAGE}:${BUILD_ID} ${IMAGE}:latest"
+                }
             }
         }
 
-        stage('Test') {
+        stage('Login to DockerHub') {
             steps {
-                echo "Running tests..."
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                }
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                sh "docker push ${IMAGE}:${BUILD_ID}"
+                sh "docker push ${IMAGE}:latest"
             }
         }
 
         stage('Deploy') {
             steps {
-                echo "Deploying application..."
+                echo "Deployment will come next..."
             }
         }
     }
